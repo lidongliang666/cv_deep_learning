@@ -1,0 +1,9 @@
+*.ui
+*.jpg
+*.json 
+
+__pycache__
+
+*test.py
+
+!config.json
