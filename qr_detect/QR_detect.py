@@ -3,7 +3,6 @@ import os
 
 from .QR_detect_by_pyzbar import decode_by_pyzbar
 from .QR_detect_by_default import detecte,find_QR_position
-import pyzbar.pyzbar as pyzbar
 import cv2
 import numpy as np
 import zxing

@@ -1,12 +1,18 @@
 # coding:utf8#author:lcamry
+
+import os
+import traceback
+
+
 from queue import Queue
-from PyQt5.QtCore import QThread
-from PyQt5.QtGui import QStandardItemModel
-from PyQt5.QtWidgets import QAbstractItemView, QApplication, QHeaderView, QTableView
+from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtGui import QStandardItem, QStandardItemModel
+from PyQt5.QtWidgets import QAbstractItemView, QApplication, QHeaderView, QMessageBox, QTableView
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-import time
 
+from qr_detect.correct_answer import AnswercardCorrect
+from api import uploadHomework
 
 class FileEventHandler(FileSystemEventHandler):
     def __init__(self, queue):
@@ -59,17 +65,83 @@ class DirMonitor(QThread):
 
     def updataMonitorDir(self, monitorDir):
         '''更换监控的文件夹'''
-        self.observer.stop()
+        # self.observer.stop()
+        # print('---------ssssssss')
         # 更换被监控的文件夹后
+        self.observer.unschedule_all()
         self.monitorDir = monitorDir
-        self.start()  # ----》》》》 会调用 run()
+        self.observer.schedule(self.event_handler, self.monitorDir, True)
+        # self.observer.start()
+        # self.start()  # ----》》》》 会调用 run()
 
     def __del__(self):
         self.observer.stop()
 
+class DirfileConsumer(QThread):
+    res_signal = pyqtSignal(str,str,int) # 文件名称 uuid pageno
+    uploadfile_ok_signal = pyqtSignal(bool)
+    def __init__(self, myqueue,parent = None) -> None:
+        super().__init__(parent=parent)
+        self.queue = myqueue
+        self.answercardCorrect = AnswercardCorrect()
+        self.working = True
+
+        # self.save_dir_name = "qt_correct_img"
+        # self.save_dir = os.path.join(os.path.split(os.path.realpath(__file__))[0],self.save_dir_name)
+        # if not os.path.exists(self.save_dir):
+        #     os.makedirs(self.save_dir)
+
+        # print(os.path.realpath(__file__))
+    
+    def run(self) -> None:
+        '''消费 图片'''
+        while self.working:
+            # if self.queue.empty():
+            #     self.sleep(1)
+            #     continue
+
+            srcimgPath = self.queue.get()
+            print('-----------')
+            self.sleep(1)
+            _,qr_dict,page_no = self.answercardCorrect.predict(srcimgPath)
+            imgname = os.path.split(srcimgPath)[-1]
+
+            # 保存一下 矫正后的图片
+            # save_path = os.path.join(self.save_dir,imgname)
+
+            # if not isinstance(correct_img,str):
+            #     cv2.imwrite(save_path,correct_img)
+            print(qr_dict,'-----------')
+
+            if len(qr_dict):
+                uuid = list(qr_dict.values())[0]
+            else:
+                uuid = ''
+            
+            if not isinstance(page_no,int):
+                page_no = 0
+            self.res_signal.emit(imgname,uuid,page_no)
+
+            # 开始上传文件
+            if  uuid:
+            
+                try:
+                    uploadHomework(srcimgPath,uuid)
+                except:
+                    print(traceback.format_exc())
+                    self.uploadfile_ok_signal.emit(False)
+                else:
+                    self.uploadfile_ok_signal.emit(True)
+            else:
+                self.uploadfile_ok_signal.emit(False)
+
+
+    # def __del__(self):
+    #     self.working = False
+        # self.wait()
+
 
 class QTShowMointorFile(QTableView):
-
     def __init__(self, monitorDir,parent=None) -> None:
         super().__init__(parent=parent)
 
@@ -86,7 +158,64 @@ class QTShowMointorFile(QTableView):
         self.queue = Queue()
         self.dirMonitor_thread = DirMonitor(
             monitorDir=self.monitorDir, myqueue=self.queue, parent=self)
-        self.dirMonitor_thread.start()
+        if self.checkMonitorDir():
+            self.dirMonitor_thread.start()
+
+        # 消费者
+        self.dirfileConsumer_thread = DirfileConsumer(self.queue)
+        self.dirfileConsumer_thread.start()
+        self.dirfileConsumer_thread.res_signal.connect(self.get_pic_info)
+        self.dirfileConsumer_thread.uploadfile_ok_signal.connect(self.uploadFileOK)
+
+        # self.checkMonitorDir()
+    
+    def checkMonitorDir(self):
+        if  not (self.monitorDir and os.path.exists(self.monitorDir)):
+            QMessageBox.about(self,"警告",f"监视的文件夹路径异常：{self.monitorDir}")
+            return False
+        else:
+            return True
+
+    def get_pic_info(self,imgname,uuid,page_no):
+        print(imgname,uuid,page_no)
+        self.setRowdata(imgname,uuid,page_no)
+    
+    def uploadFileOK(self,uploadOK):
+        print(self.r_rownum)
+        if uploadOK:
+            self.setRowdata(status="上传成功",rownum=self.r_rownum)
+        else:
+            self.setRowdata(status="上传失败",rownum=self.r_rownum)
+
+    def chageMonitorDir(self,newMonitorDir):
+        self.monitorDir = newMonitorDir
+        if self.checkMonitorDir():
+            self.dirMonitor_thread.updataMonitorDir(newMonitorDir)
+    
+    def destroy(self) -> None:
+        self.dirMonitor_thread.observer.stop()
+        # return super().destroy(destroyWindow=destroyWindow, destroySubWindows=destroySubWindows
+
+    def setRowdata(self,imgname=None,uuid=None,page_no=None,status=None,rownum=None):
+        '''设置数据'''
+        if rownum is None:
+            rownum = self.model.rowCount()
+
+        self.r_rownum = self.model.rowCount()
+        print(rownum)
+
+        if not imgname is None:
+            self.model.setItem(rownum,0,QStandardItem(imgname))
+        
+        if not uuid is None:
+            self.model.setItem(rownum,1,QStandardItem(uuid))
+
+        if not page_no is None:
+            self.model.setItem(rownum,2,QStandardItem(str(page_no)))
+
+        if not status is None:
+            self.model.setItem(rownum,3,QStandardItem(status))
+    
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QFormLayout, QHB
 class ConfigList(QDialog):
     save_config_signal = pyqtSignal(dict)
     config_haschaged_signal = pyqtSignal()
+    monitordir_haschaged_signal = pyqtSignal()
 
     def __init__(self, configdict, parent=None):
         super(ConfigList, self).__init__(parent)
@@ -39,6 +40,7 @@ class ConfigList(QDialog):
         label = QLabel()
         label.setFixedHeight(30)
         label.setText("被监控的文件夹:")
+        self.Monitoredfolders_init = configdict['Monitoredfolders']
         self.Monitoredfolders_le = QLineEdit(configdict['Monitoredfolders'])
         self.Monitoredfolders_le.setFixedSize(200,30)
         self.chage_monitor_btn = QPushButton('更改')
@@ -85,10 +87,17 @@ class ConfigList(QDialog):
         print(directory)
         self.Monitoredfolders_le.setText(directory)
 
+        
+
         # 当窗口非继承QtWidgets.QDialog时，self可替换成 None
     def closeEvent(self, event) -> None:
         if self.config_haschaged_status and self.createUserId_init != self.createUserId_le.text():
             self.config_haschaged_signal.emit()
+
+        # 发送信号
+        if self.config_haschaged_status and self.Monitoredfolders_init != self.Monitoredfolders_le.text():
+            self.monitordir_haschaged_signal.emit()
+
         event.accept()
 
 if __name__ == "__main__":

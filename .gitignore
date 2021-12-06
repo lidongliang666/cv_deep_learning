@@ -3,7 +3,12 @@
 *.json 
 
 __pycache__
-
+apijson
 *test.py
+
+build
+dist
+*.spec
+*.log
 
 !config.json

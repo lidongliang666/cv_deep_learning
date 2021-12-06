@@ -1,4 +1,4 @@
-import pyzbar.pyzbar as pyzbar
+from pyzbar import pyzbar
 
 "zbar 二维码检测"
 
