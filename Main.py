@@ -20,6 +20,7 @@ from configListItem import ConfigList
 from utils import ApiNetUtilThread
 from api import getHomeworkList
 from dirmonitor import QTShowMointorFile
+from trayicon import TrayIcon
 
 
 class Ui_MainWindow(object):
@@ -78,6 +79,8 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+        self.closeWin = False
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "展示台"))
@@ -101,14 +104,20 @@ class Ui_MainWindow(object):
         configList.show()
 
     def closeEvent(self, event):
-        result = QMessageBox.question(
-            self, "注意：", "您真的要关闭窗体吗？", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if result == QMessageBox.Yes:
+        if self.closeWin:
             event.accept()
             self.showMonitorfile.destroy()
         else:
+            self.hide()
             event.ignore()
-            QMessageBox.information(self, "消息", "谢谢！")
+        # result = QMessageBox.question(
+        #     self, "注意：", "您真的要关闭窗体吗？", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        # if result == QMessageBox.Yes:
+        #     event.accept()
+        #     self.showMonitorfile.destroy()
+        # else:
+        #     event.ignore()
+        #     QMessageBox.information(self, "消息", "谢谢！")
 
     def save_config(self, new_configdict):
         self.init_config = new_configdict
@@ -179,7 +188,6 @@ class Ui_MainWindow(object):
 class MainForm(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainForm, self).__init__()
-        QMessageBox.about(self, '提示', f"配置文件路径{configJson_filepath}")
         self.setupUi(self)
 
 
@@ -199,5 +207,8 @@ if __name__ == "__main__":
     logging.info(configJson_filepath)
     app = QApplication(sys.argv)
     win = MainForm()
-    win.show()
+    trayicon = TrayIcon(win)
+    trayicon.show()
+    QMessageBox.about(win, '提示', f"作业检测终端成功启动")
+    # win.show()
     sys.exit(app.exec_())
