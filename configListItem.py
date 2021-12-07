@@ -97,7 +97,7 @@ class ConfigList(QDialog):
             configdict:dict
         '''
         config = {}
-        config['createUserId'] = self.createUserId_le.text()
+        # config['createUserId'] = self.createUserId_le.text()
         config['Monitoredfolders'] = self.Monitoredfolders_le.text()
         config['autostart'] = self.get_auto_start_status()
         self.config_haschaged_status = True

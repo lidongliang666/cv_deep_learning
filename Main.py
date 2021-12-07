@@ -222,7 +222,7 @@ class MainForm(QMainWindow, Ui_MainWindow):
                 if not directory is None:
                     new_config = self.init_config
                     new_config['Monitoredfolders'] = directory
-                    self.save_config(new_config)
+                    self.save_config_simple(new_config)
                     break
         
 
@@ -232,7 +232,7 @@ class MainForm(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         
 
-    def save_config(self, new_configdict):
+    def save_config_simple(self, new_configdict):
         print("当前配置为", new_configdict)
         with open(configJson_filepath, 'w', encoding='utf-8') as f:
             json.dump(new_configdict, f, ensure_ascii=False)
