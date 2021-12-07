@@ -148,7 +148,7 @@ class QTShowMointorFile(QTableView):
         self.model = QStandardItemModel()
         self.model.setHorizontalHeaderLabels(["文件名称", "uuid", "pageno", "备注"])
         self.setModel(self.model)
-        self.resize(611, 351)
+        self.resize(611, 351+200)
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -158,6 +158,7 @@ class QTShowMointorFile(QTableView):
         self.queue = Queue()
         self.dirMonitor_thread = DirMonitor(
             monitorDir=self.monitorDir, myqueue=self.queue, parent=self)
+        # 如果配置异常 会导致 文件监控者线程起不来 就导致后续 检测不到
         if self.checkMonitorDir():
             self.dirMonitor_thread.start()
 

@@ -33,14 +33,14 @@ class ConfigList(QDialog):
         radiobutton_h_layout = QHBoxLayout()
         all_v_layout = QVBoxLayout()
 
-        label = QLabel()
-        label.setFixedHeight(30)
-        label.setText("createUserId:")
-        self.createUserId_init = configdict['createUserId']
-        self.createUserId_le = QLineEdit(configdict['createUserId'])
-        # self.createUserId_le.setFixedSize(200,30)
-        self.createUserId_le.setFixedHeight(30)
-        layout.addRow(label, self.createUserId_le)
+        # label = QLabel()
+        # label.setFixedHeight(30)
+        # label.setText("createUserId:")
+        # self.createUserId_init = configdict['createUserId']
+        # self.createUserId_le = QLineEdit(configdict['createUserId'])
+        # # self.createUserId_le.setFixedSize(200,30)
+        # self.createUserId_le.setFixedHeight(30)
+        # layout.addRow(label, self.createUserId_le)
 
         label = QLabel()
         label.setFixedHeight(30)
@@ -122,8 +122,8 @@ class ConfigList(QDialog):
         # 当窗口非继承QtWidgets.QDialog时，self可替换成 None
 
     def closeEvent(self, event) -> None:
-        if self.config_haschaged_status and self.createUserId_init != self.createUserId_le.text():
-            self.config_haschaged_signal.emit()
+        # if self.config_haschaged_status and self.createUserId_init != self.createUserId_le.text():
+        #     self.config_haschaged_signal.emit()
 
         # 发送信号
         if self.config_haschaged_status and self.Monitoredfolders_init != self.Monitoredfolders_le.text():
