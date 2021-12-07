@@ -2,7 +2,9 @@ import cv2
 import numpy as np
 
 from .util import PageNoDecoder
-from .QR_detect import QR_detect
+# from .QR_detect import QR_detect
+
+from .QR_detect_by_pyzbar import decode_by_pyzbar
 
 class AnswercardCorrect:
     s_w = 1242 #模板宽
@@ -39,9 +41,11 @@ class AnswercardCorrect:
         if isinstance(correct_img,str):
             return "","",""
         try:
-            qr_dict = QR_detect(correct_img)
+            # qr_dict = QR_detect(correct_img)
+            qr_dict = decode_by_pyzbar(correct_img)
             if not len(qr_dict):
-                qr_dict = QR_detect(img)
+                # qr_dict = QR_detect(img)
+                qr_dict = decode_by_pyzbar(img)
         except:
             # 对于某些图片，之前同事写的代码会报错（这个图片zbar也检测不到）
             # 修改一下这里的逻辑，虽然二维码检测不到，倒是还是要 矫正后的图片返回，其他流程会用到

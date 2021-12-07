@@ -192,7 +192,7 @@ class MainForm(QMainWindow, Ui_MainWindow):
 
 
 if __name__ == "__main__":
-
+    print(os.path.abspath(sys.argv[0]))
     logpath = os.path.join(os.path.split(
         os.path.realpath(__file__))[0], "log.log")
     configJson_filepath = os.path.join(os.path.split(

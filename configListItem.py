@@ -10,7 +10,11 @@
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QRadioButton, QVBoxLayout
+
+from autorun import AutoRun
+
+AUTO_START_KEY = "allhomework"
 
 
 class ConfigList(QDialog):
@@ -26,12 +30,13 @@ class ConfigList(QDialog):
         layout = QFormLayout()
         monitordir_h_layout = QHBoxLayout()
         button_h_layout = QHBoxLayout()
+        radiobutton_h_layout = QHBoxLayout()
         all_v_layout = QVBoxLayout()
 
         label = QLabel()
         label.setFixedHeight(30)
         label.setText("createUserId:")
-        self.createUserId_init =  configdict['createUserId']
+        self.createUserId_init = configdict['createUserId']
         self.createUserId_le = QLineEdit(configdict['createUserId'])
         # self.createUserId_le.setFixedSize(200,30)
         self.createUserId_le.setFixedHeight(30)
@@ -42,12 +47,32 @@ class ConfigList(QDialog):
         label.setText("被监控的文件夹:")
         self.Monitoredfolders_init = configdict['Monitoredfolders']
         self.Monitoredfolders_le = QLineEdit(configdict['Monitoredfolders'])
-        self.Monitoredfolders_le.setFixedSize(200,30)
+        self.Monitoredfolders_le.setFixedSize(200, 30)
         self.chage_monitor_btn = QPushButton('更改')
         monitordir_h_layout.addWidget(self.Monitoredfolders_le)
         monitordir_h_layout.addWidget(self.chage_monitor_btn)
         layout.addRow(label, monitordir_h_layout)
-        
+
+        label = QLabel()
+        label.setFixedHeight(30)
+        label.setText("开机自启动:")
+        self.autostart_init = configdict['autostart']  # False
+        self.autostart_off = QRadioButton("off")
+        self.autostart_off.setFixedHeight(30)
+        self.autostart_on = QRadioButton("on")
+        self.autostart_on.setFixedHeight(30)
+
+        if self.autostart_init:
+            self.autostart_on.setChecked(True)
+        else:
+            self.autostart_off.setChecked(True)
+        radiobutton_h_layout.addWidget(self.autostart_off)
+        radiobutton_h_layout.addWidget(self.autostart_on)
+
+        layout.addRow(label, radiobutton_h_layout)
+        # 设置初始化状态
+        # 点击保存的时候 根据谁被选中 来开关软件自启动
+
         self.save_btn = QPushButton("保存")
         self.save_btn.setDefault(True)
         self.quit_btn = QPushButton("退出")
@@ -57,7 +82,6 @@ class ConfigList(QDialog):
         all_v_layout.addLayout(layout)
         all_v_layout.addLayout(button_h_layout)
 
-
         self.setLayout(all_v_layout)
         self.setWindowTitle("配置详情")
         self.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
@@ -65,7 +89,7 @@ class ConfigList(QDialog):
         self.quit_btn.clicked.connect(self.close)
         self.chage_monitor_btn.clicked.connect(self.chage_monitor_dir)
         self.save_btn.clicked.connect(self.emit_save_signal)
-    
+
     def emit_save_signal(self):
         '''
         返回:
@@ -75,21 +99,28 @@ class ConfigList(QDialog):
         config = {}
         config['createUserId'] = self.createUserId_le.text()
         config['Monitoredfolders'] = self.Monitoredfolders_le.text()
+        config['autostart'] = self.get_auto_start_status()
         self.config_haschaged_status = True
         self.save_config_signal.emit(config)
-        
+
+    def get_auto_start_status(self):
+        '''判断是否开机启动'''
+        if self.autostart_on.isChecked():
+            return True
+        else:
+            return False
 
     def chage_monitor_dir(self):
         # print('更改监视问价夹')
-        # directory = QtWidgets.QFileDialog.getExistingDirectory(self, "getExistingDirectory", "./") 
+        # directory = QtWidgets.QFileDialog.getExistingDirectory(self, "getExistingDirectory", "./")
         dir = self.Monitoredfolders_le.text() if self.Monitoredfolders_le.text() else "./"
-        directory = QFileDialog.getExistingDirectory(self,"getExistingDirectory",dir)
+        directory = QFileDialog.getExistingDirectory(
+            self, "getExistingDirectory", dir)
         print(directory)
         self.Monitoredfolders_le.setText(directory)
 
-        
-
         # 当窗口非继承QtWidgets.QDialog时，self可替换成 None
+
     def closeEvent(self, event) -> None:
         if self.config_haschaged_status and self.createUserId_init != self.createUserId_le.text():
             self.config_haschaged_signal.emit()
@@ -98,14 +129,38 @@ class ConfigList(QDialog):
         if self.config_haschaged_status and self.Monitoredfolders_init != self.Monitoredfolders_le.text():
             self.monitordir_haschaged_signal.emit()
 
+        # 是否自启动
+        current_autostart_status = self.get_auto_start_status()
+        if self.config_haschaged_status and self.autostart_init != current_autostart_status:
+            '''根据当前状态 设置是否开机启动'''
+            if current_autostart_status:
+                print('开启开机启动')
+                error_code, error_info = AutoRun(
+                    switch="open", key_name=AUTO_START_KEY)
+                if error_code:
+                    QMessageBox.about(self, '开启开机启动失败', error_info)
+                else:
+                    print(error_info)
+            else:
+                print("关闭开机启动")
+                error_code, error_info = AutoRun(
+                    switch="close", key_name=AUTO_START_KEY)
+                if error_code:
+                    QMessageBox.about(self, '开启开机启动失败', error_info)
+                else:
+                    print(error_info)
         event.accept()
+
 
 if __name__ == "__main__":
     import sys
+    import os
+    print(os.path.abspath(sys.argv[0]))
     app = QApplication(sys.argv)
     demo = ConfigList(configdict={
         "createUserId": "1898a796bd164dd4a2bdab56bcef4596",
-        "Monitoredfolders": ""
+        "Monitoredfolders": "C:/Users/W10/Pictures",
+        "autostart": True
     })
     demo.show()
     sys.exit(app.exec_())
