@@ -13,6 +13,48 @@ from watchdog.events import FileSystemEventHandler
 
 from qr_detect.correct_answer import AnswercardCorrect
 from api import uploadHomework
+import json
+import requests
+from pymysql_comme import get_userid_by_qrid
+
+def upload_pic_simple(imgpath, current_model):  # 将图片上传到指定位置
+    if current_model == "develop":
+        url = "http://124.70.17.227/api/media/api/v1/media/addMedia"
+    elif current_model == "preprod":
+        url = "http://121.36.71.62/api/media/api/v1/media/addMedia"
+    elif current_model == "production":
+        url = "http://www.necibook.com/api/media/api/v1/media/addMedia"
+    else:
+        url = "http://112.126.120.231/api/media/api/v1/media/addMedia"
+    # url ="http://121.36.71.62/api/media/api/v1/media/download/"
+    # try:
+    data = {}
+    data["file"] = (imgpath, open(imgpath, "rb"),
+                    "image/"+imgpath.split(".")[-1])
+    res = requests.post(url, files=data).json()
+    if res["code"]:
+        print(str("图片%s上传失败" % ( imgpath)))
+
+        return None
+    else:
+        # 将文件夹下的图片清空
+        fileId = res["result"]['id']
+        return fileId
+def uploadPic(srcPath):
+    #上传图片获得uuid
+    fileId = upload_pic_simple(srcPath,"develop")
+    url = "http://192.168.0.74:5014/api/ai_cv/pic_message"
+    params = json.dumps([{"fileId":fileId,"recognitionFlag":True}])
+    res = requests.post(url, data=params).json()
+    print(res)
+    #根据二维码id 查找userId
+    userId = get_userid_by_qrid(res["result"][0]["printQrId"])
+
+    params = json.dumps([{"pic": [{"fileId":res['result'][0]['fileId'], 'presetUserId':userId,'pageNum':1, 'extraList': res['result'][0]["extraList"]}],'isAnonymous':True,'isExam':False, 'subjectId':'2','examId':'ee7e9da250a7465d897772d9d92b17be','printId':"1ec3daafcb384f5eb161e80d1aa8e1fb",'isExtraInfo':True}])
+    url = "http://192.168.0.74:5014/api/ai_cv/pic_judge"
+    res = requests.post(url, data=params).json()
+    # print(res)
+    return True
 
 class FileEventHandler(FileSystemEventHandler):
     def __init__(self, queue):
@@ -126,7 +168,9 @@ class DirfileConsumer(QThread):
             if  uuid:
             
                 try:
-                    uploadHomework(srcimgPath,uuid)
+                    # uploadHomework(srcimgPath,uuid)
+                    # 先上传图片,然后判题
+                    uploadPic(srcimgPath)
                 except:
                     print(traceback.format_exc())
                     self.uploadfile_ok_signal.emit(False)
@@ -237,3 +281,4 @@ if __name__ == "__main__":
     win = QTShowMointorFile(monitorDir="C:/Users/W10/Pictures")
     win.show()
     sys.exit(app.exec_())
+    # uploadPic("./03632d574d91435e9319de819550a1a5.jpg")

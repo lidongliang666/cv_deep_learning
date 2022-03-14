@@ -59,6 +59,14 @@ class UsingMysql(object):
     def cursor(self):
         return self._cursor
 
+def get_userid_by_qrid(qrid):
+    sql = '''
+    SELECT preset_user_id FROM zjyz_mark_print_qr WHERE id ='{}'
+    '''.format(qrid)
+    with UsingMysql() as um:
+        um.cursor.execute(sql)
+        data = um.cursor.fetchone()
+    return data['preset_user_id']
 
 def get_examid_by_uuid_from_db(uuid):
     sql = '''
