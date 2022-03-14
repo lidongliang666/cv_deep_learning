@@ -204,6 +204,8 @@ class MainForm(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainForm, self).__init__()
         # 检测一下 监控文件夹是否正常
+        # 不正常 需要选择 一个文件夹
+        # 并且更新配置
         with open(configJson_filepath, 'r', encoding='utf-8') as f:
             self.init_config = json.load(f)
 
@@ -224,11 +226,7 @@ class MainForm(QMainWindow, Ui_MainWindow):
                     new_config['Monitoredfolders'] = directory
                     self.save_config_simple(new_config)
                     break
-        
-
-        # 不正常 需要选择 一个文件夹
-        # 并且更新配置
-
+                
         self.setupUi(self)
         
 
