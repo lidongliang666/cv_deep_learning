@@ -1,3 +1,4 @@
+import json
 import pymysql
 from timeit import default_timer
 
@@ -78,5 +79,52 @@ def get_examid_by_uuid_from_db(uuid):
         data = um.cursor.fetchone()
     return data['user_id'],data['homework_id'],data['resource_id']
 
+
+# --------------------------------新架构-------------------------------------------------
+
+def get_printid_userid_by_printqrid(print_qr_id):
+    '''通过 print_qr_id  查 printid,userid'''
+    sql = '''
+    SELECT a.print_id,a.preset_user_id FROM zjyz_mark_print_qr a 
+    WHERE a.id = '{}'		
+    '''.format(print_qr_id)
+    with UsingMysql() as um:
+        um.cursor.execute(sql)
+        data = um.cursor.fetchone()
+    if data:
+        return data['print_id'],data['preset_user_id']
+    else:
+        return None,None
+
+def get_examid_layoutsettings_by_printid(printid):
+    sql = '''
+    SELECT a.exam_id,a.layout_settings FROM zjyz_mark_exam_print a 
+    WHERE a.id = '{}'		
+    '''.format(printid)
+    with UsingMysql() as um:
+        um.cursor.execute(sql)
+        data = um.cursor.fetchone()
+    if data:
+        return data['exam_id'], data['layout_settings'] # layout_settings 的字符串比较特殊 A4 
+    else:
+        return None,None
+
+def get_subjectid_answermethod_by_examid(examid):
+    sql = '''
+    SELECT a.subject_id,a.answer_method FROM zjyz_mark_exam a 
+    WHERE a.id = '{}'		
+    '''.format(examid)
+    with UsingMysql() as um:
+        um.cursor.execute(sql)
+        data = um.cursor.fetchone()
+    if data:
+        return data['subject_id'], data['answer_method'] # layout_settings 的字符串比较特殊 A4 
+    else:
+        return None,None
+
+
 if __name__ == "__main__":
-    print(get_examid_by_uuid_from_db("0002b60f75df46a9aac30f8746d74f6e"))
+    # print(get_examid_by_uuid_from_db("0002b60f75df46a9aac30f8746d74f6e"))
+    # print(get_printid_userid_by_printqrid("004078f9471c5305ebdae189c5cdbe63"))
+    # print(get_examid_layoutsettings_by_printid("2bedb501fcca48fa939be17b25ce658f"))
+    print(get_subjectid_answermethod_by_examid("6890c8fdbffd4272a9a7897145356fbd"))

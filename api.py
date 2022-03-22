@@ -83,9 +83,47 @@ def uploadHomework(srcimgPath,uuid):
     # except:
     #     print(traceback.format_exc())
 
+# --------------------------------------------------------------------------------------------------
 
+def uploadHomework_new(srcimgPath,print_qr_id):
+    '''
+        print_qr_id 是新架构学生作答页 上的二维码 内容，通过这个二维码 要查询一下内容
+           userId(教师) necibook-20200823-78-admin
 
+            isExam
+            subjectId
 
+            (调用解析用户上传图片的接口)
+            "presetUserId": "4a23a12a041645269001a5c291cb3afe"
+            printid 
+                "fileId": "e6c212b7db38435a90b23374a7dee361",
+                
+                "pageNum": 1,
+                "extraList": []
+        1. 通过print_qr_id查 zjyz_mark_print_qr的 print_id, preset_user_id   (pymysql_comme已实现)
+        2. 通过print_id 查 exam_id (pymysql_comme已实现)
+        3. 通过print_id 查 zjyz_mark_exam_print 的 layout_settings 获得 extraList 知道是否包含 额外字段 (pymysql_comme已实现)
+        4. exam_id 查 zjyz_mark_exam 获得 subject_id answer_method 试卷、答题纸 (pymysql_comme已实现)
+        5. 调用解析用户上传图片的接口 获得 fileId,pageNum,extraList
+    '''
+ 
+
+def uploadHomeworkFile_new(srcimgPath):
+    
+    '''
+        5. 调用解析用户上传图片的接口 获得 fileId,pageNum,extraList
+        前端解析用户上传图片
+        {
+            "markPrintQrList": [
+                {
+                    "fileId": "a39be03693674aa9ae311dfcfd09311d",
+                    "recognitionFlag": false
+                }
+            ],
+            "userId": "necibook-20200823-78-admin"
+        }
+    '''
+    
 
 
 # {
