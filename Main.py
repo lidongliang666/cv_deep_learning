@@ -45,19 +45,19 @@ class Ui_MainWindow(object):
         self.refreshButton.setEnabled(False)
         self.refreshButton.clicked.connect(self.refreshHomeworkList)
 
-        # self.model = QStandardItemModel()
-        # self.model.setHorizontalHeaderLabels(["作业名称", "作答方式", "发布时间", "提交情况"])
-        # self.tableView = QtWidgets.QTableView(self.centralwidget)
-        # self.tableView.setModel(self.model)
+        self.model = QStandardItemModel()
+        self.model.setHorizontalHeaderLabels(["作业名称", "作答方式", "发布时间", "提交情况"])
+        self.tableView = QtWidgets.QTableView(self.centralwidget)
+        self.tableView.setModel(self.model)
 
-        # self.tableView.horizontalHeader().setStretchLastSection(True)
-        # self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        # self.tableView.setEditTriggers(
-        #     QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.tableView.horizontalHeader().setStretchLastSection(True)
+        self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.tableView.setEditTriggers(
+            QAbstractItemView.EditTrigger.NoEditTriggers)
 
-        # self.tableView.doubleClicked.connect(self.tableView_doubleClicked)
-        # self.tableView.setGeometry(QtCore.QRect(10, 70, 611, 351))
-        # self.tableView.setObjectName("tableView")
+        self.tableView.doubleClicked.connect(self.tableView_doubleClicked)
+        self.tableView.setGeometry(QtCore.QRect(10, 70, 611, 351))
+        self.tableView.setObjectName("tableView")
 
         self.showMonitorfile = QTShowMointorFile(
             self.init_config['Monitoredfolders'], parent=self)
