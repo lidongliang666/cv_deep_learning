@@ -19,6 +19,26 @@
 
 ### 4.使用Inno Setup Compiler添加安装指导
 
+- [Inno setup的使用方法](https://www.cnblogs.com/benpaodejiandan/p/7081011.html)
+
+- ```
+  # 管理员权限运行安装程序
+  [Setup]
+  PrivilegesRequired=admin
+  
+  
+  # 修改注册表
+  [Registry]
+  Root: HKCR; Subkey: "allHomeworkSubmit"; ValueType:string; ValueName:"URL Protocol";ValueData:"";Flags:uninsdeletevalue
+  Root: HKCR; Subkey: "allHomeworkSubmit"; ValueType:string; ValueName:"";ValueData:"allHomeworkSubmit Protocol";Flags:uninsdeletevalue
+  Root: HKCR; Subkey: "allHomeworkSubmit\DefaultIcon"; ValueType:string; ValueName:"";ValueData:"{app}\{#MyAppExeName},0";Flags:uninsdeletekey
+  Root: HKCR; Subkey: "allHomeworkSubmit\shell"; ValueType: none; ValueName: ""; ValueData: "" 
+  Root: HKCR; Subkey: "allHomeworkSubmit\shell\open"; ValueType: none; ValueName: ""; ValueData: ""
+  Root: HKCR; Subkey: "allHomeworkSubmit\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
+  ```
+
+- 在 浏览器输入 allHomeworkSubmit::\\ 即可打开应用
+
 ## 作为flask服务启动
 
 ### 目前只实现了
